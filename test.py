@@ -9,6 +9,6 @@ import gpt
 
 
 
-#mbr.read_mbr("blackarch_mbr.bin")
-#print("\n" *4)
+mbr.read_mbr("blackarch_mbr.bin")
+print("\n" *4)
 gpt.read_gpt("current_gpt.bin")

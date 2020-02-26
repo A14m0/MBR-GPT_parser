@@ -21,9 +21,6 @@ def parse_guid(guid):
     fourth_bytes = ""
     fifth_bytes = ""
 
-    test_uuid = uuid.UUID(bytes=guid)
-    print(test_uuid)
-
     first = struct.unpack("<cccc", guid[:4])
     for byte in first:
         first_bytes += byte.hex()
