@@ -1,0 +1,8 @@
+/home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/deps/capstone_sys-197de90751cb08ba.rmeta: /home/wave/.cargo/registry/src/github.com-1ecc6299db9ec823/capstone-sys-0.11.0/src/lib.rs /home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/build/capstone-sys-bfec0c931d30ee12/out/capstone.rs /home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/build/capstone-sys-bfec0c931d30ee12/out/capstone_archs_impl.rs /home/wave/.cargo/registry/src/github.com-1ecc6299db9ec823/capstone-sys-0.11.0/common.rs
+
+/home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/deps/capstone_sys-197de90751cb08ba.d: /home/wave/.cargo/registry/src/github.com-1ecc6299db9ec823/capstone-sys-0.11.0/src/lib.rs /home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/build/capstone-sys-bfec0c931d30ee12/out/capstone.rs /home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/build/capstone-sys-bfec0c931d30ee12/out/capstone_archs_impl.rs /home/wave/.cargo/registry/src/github.com-1ecc6299db9ec823/capstone-sys-0.11.0/common.rs
+
+/home/wave/.cargo/registry/src/github.com-1ecc6299db9ec823/capstone-sys-0.11.0/src/lib.rs:
+/home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/build/capstone-sys-bfec0c931d30ee12/out/capstone.rs:
+/home/wave/Desktop/Coding_Projects/Python/MBR-GPT_parser/rust_test/target/rls/debug/build/capstone-sys-bfec0c931d30ee12/out/capstone_archs_impl.rs:
+/home/wave/.cargo/registry/src/github.com-1ecc6299db9ec823/capstone-sys-0.11.0/common.rs:
