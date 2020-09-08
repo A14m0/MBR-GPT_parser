@@ -1,6 +1,7 @@
 extern crate capstone;
 
 use std::fs::File;
+use std::convert::TryInto;
 use std::io::prelude::*;
 use std::path::Path;
 use bit_field::BitArray;
@@ -53,7 +54,7 @@ fn parse_flags(dat: &[u8]){
         is_windows_part = true;
     }
 
-    for i in (3..55){
+    for i in 3..55 {
         if dat.get_bit(i){
             rsrv_bits.push(i as u32);
             if i > 47 && i < 56 {
@@ -73,34 +74,26 @@ fn parse_flags(dat: &[u8]){
         }
     }
 
-    println!("Flags:\nPlatform Required: {}\nEFI Ignore: {}",
+    println!("Flags:\n\tPlatform Required: {}\n\tEFI Ignore: {}",
             platform_req, efi_ign);
-    println!("Legacy BIOS Bootable: {}\nReserved bits used: {:?}",
+    println!("\tLegacy BIOS Bootable: {}\n\tReserved bits used: {:?}",
             legacy_bootable, rsrv_bits);
     if is_windows_part{
-        println!("Detected Windows Partition (from flags)");
-        println!("Read-Only: {}\nShadow Copy: {}, Hidden Drive: {}",
+        println!("\tDetected Windows Partition (from flags)");
+        println!("\tRead-Only: {}\n\tShadow Copy: {}, Hidden Drive: {}",
                 read_only, shadow, hidden);
-        println!("No Drive Letter (no automount): {}", no_drive_letter);
+        println!("\tNo Drive Letter (no automount): {}", no_drive_letter);
     } else if is_chrome_part {
-        println!("Detected Chrome OS Partition (from flags)");
-        println!("Successful Boot: {}\nTries remaining: {:?}\nBoot Priority: {}",
+        println!("\tDetected Chrome OS Partition (from flags)");
+        println!("\tSuccessful Boot: {}\n\tTries remaining: {:?}\n\tBoot Priority: {}",
                 successful_boot, chrome_retries, chrome_priority);
     }
 
 }
 
 /// unpacks an integer from bytes
-fn unpack_int(bytes: &[u8]) -> u32{
-    let mut out = 0u32;
-    let mut byte_shifts = 24;
-    println!("Unpacking integer: {:?}", bytes);
-    for i in 0..4{
-        println!("Byte {}", (bytes[i] as u32) << byte_shifts);
-        out = out.wrapping_add((bytes[i] as u32) << byte_shifts);
-        byte_shifts = byte_shifts - 8;
-    }
-
+fn unpack_int(bytes: [u8; 4]) -> u32{
+    let out = u32::from_le_bytes(bytes);
     println!("Unpacked data: {}", out);
     out
 }
@@ -118,7 +111,7 @@ fn unpack_long_long(bytes: &[u8]) -> u64 {
 }
 
 /// Parse partiton data contained in `data`
-fn parse_partition(data: Vec<u8>){
+fn parse_partition(data: Vec<u8>) -> Option<u8>{
 
     // parse the data
     let part_type_guid = parse_guid(&data[0..16]);
@@ -128,8 +121,8 @@ fn parse_partition(data: Vec<u8>){
     let name = String::from_utf8(data[56..].to_vec()).unwrap();
 
     // check if empty partition
-    if unpack_int(&data[0..16]) == 0u32{
-        return;
+    if u128::from_le_bytes(data.get(0..16)?.try_into().ok()?) == 0u128{
+        return None;
     }
 
     // print data
@@ -141,10 +134,11 @@ fn parse_partition(data: Vec<u8>){
 
     // parse the flags for the partition
     parse_flags(&data[48..56]);
+    Some(0)
 }
 
 /// Read GPT header data
-fn read_data(dat: &Vec<u8>, mut file: File){
+fn read_data(dat: &Vec<u8>, mut file: File) -> Option<u8> {
     let _protected_mbr = &dat[0..512];
     let part_header = dat[512..1024].to_vec();
 
@@ -156,7 +150,7 @@ fn read_data(dat: &Vec<u8>, mut file: File){
 
     // get the hex of all of the different things
     let rev = get_hex(&part_header[8..12]); // Parse GPT revision 
-    let size = unpack_int(&part_header[12..16]); // parse GPT header size
+    let size = unpack_int(part_header.get(12..16)?.try_into().ok()?); // parse GPT header size
     let crc32 = get_hex(&part_header[16..20]); // GPT header CRC32 checksum
     let reserved = get_hex(&part_header[20..24]); // Reserved chunk
     let current_lba = get_hex(&part_header[24..32]); // Current Logical Block Address
@@ -165,13 +159,14 @@ fn read_data(dat: &Vec<u8>, mut file: File){
     let last_usable = get_hex(&part_header[48..56]); // Last usable sector
     let disk_guid = parse_guid(&part_header[56..72]); // Disk's GUID
     let starting_lba = get_hex(&part_header[72..80]); // Starting Logical Block Address
-    let num_parts = unpack_int(&part_header[80..84]); // Number of partitions in table
-    let part_size = unpack_int(&part_header[84..88]); // partition data size
+    let num_parts = unpack_int(part_header.get(80..84)?.try_into().ok()?); // Number of partitions in table
+    let part_size = unpack_int(part_header.get(84..88)?.try_into().ok()?); // partition data size
     let crc32_part_arr = get_hex(&part_header[88..92]); // Partition table's CRC32
 
     // print the data
     println!("Partition Signiture: {}", sig);
     println!("GPT Revision: {}", rev);
+    println!("Header Size: {:#x}", size);
     println!("Table CRC32: {}", crc32);
     println!("Reserved chunk: {}", reserved);
     println!("Current LBA: {}", current_lba);
@@ -183,16 +178,23 @@ fn read_data(dat: &Vec<u8>, mut file: File){
     println!("Partition data size: {}", part_size);
     println!("Partition table CRC32: {}", crc32_part_arr);
 
+    println!();
     // loop over each partition and read its data
-    for i in 0..num_parts {
+    for _ in 0..num_parts {
         let mut part_data = vec![0; part_size as usize];
         file.read_exact(part_data.as_mut_slice()).unwrap();
-        parse_partition(part_data);
+        
+        match parse_partition(part_data) {
+            Some(_) => println!(),
+            None => (),
+        };
     }
+
+    Some(0)
 
 }
 
-pub fn load_and_read(path: &Path){
+pub fn load_and_read(path: &Path) -> Option<u8>{
     // Open the file from `path`
     let mut file = match File::open(&path) {
         Err(why) => panic!("couldn't open {}: {}", path.display(), why),

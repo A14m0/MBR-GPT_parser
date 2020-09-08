@@ -5,7 +5,6 @@ use std::fmt;
 use std::io::prelude::*;
 use std::path::Path;
 use std::convert::TryInto;
-use byteorder::{BigEndian, ReadBytesExt};
 
 use capstone::prelude::*;
 
@@ -24,7 +23,7 @@ impl fmt::Display for MbrPart{
 
 /// Implemented functions for the MbrPart struct
 impl MbrPart{
-    pub fn new(mut chunk: &[u8]) -> Self {
+    pub fn new(chunk: &[u8]) -> Self {
         MbrPart {
             data: chunk.to_vec().clone()
         }
@@ -58,12 +57,12 @@ impl MbrPart{
     pub fn info(&self) -> String {
         // set up temporary and return strings
         let mut out = String::new();
-        let mut tmp_str = String::new();
-        let mut tmp_vec = self.data.clone();
+        //let mut tmp_str = String::new();
+        let tmp_vec = self.data.clone();
 
         // check if the partition is the active boot partition
         let mut active_part = false;
-        if(self.data[0] == 0x80){
+        if self.data[0] == 0x80 {
             active_part = true;
         } 
 
@@ -116,7 +115,7 @@ fn disassemble_mbr_instructions(data: Vec<u8>) -> CsResult<()>{
 }
 
 /// Parse the 4 partitions in `part_table`
-fn parse_partitions(mut part_table: &[u8]){
+fn parse_partitions(part_table: &[u8]){
 
     // assert that the partition table is the propper length
     assert_eq!(part_table.len(), (510-446));
@@ -143,12 +142,12 @@ fn parse_partitions(mut part_table: &[u8]){
 }
 
 /// Parse the MBR data contained in `dat`
-fn read_mbr(mut dat: Vec<u8>) {
+fn read_mbr(dat: Vec<u8>) {
 
     // Split the MBR data into vecs for each part of it
     let operations = &dat[0..446];
     let partition_table = &dat[446..510];
-    let magic = &dat[510..];
+    let _magic = &dat[510..];
 
     // parse the partition table
     parse_partitions(partition_table);
@@ -173,7 +172,7 @@ pub fn load_and_read(path: &Path) {
 
     // Read the file contents into a string, returns `io::Result<usize>`
     let mut v = vec![0; 512];
-    let size = match file.read(&mut v) {
+    let _size = match file.read(&mut v) {
         Err(why) => panic!("couldn't read {}: {}", path.display(), why),
         Ok(size) => size,
     };
